@@ -1,0 +1,122 @@
+[
+  {
+    "id": 1,
+    "name": "Hamlet",
+    "author": "William Shakespeare",
+    "category": "Novel",
+    "language": "Lithuanian",
+    "publicationDate": "1603-01-01T00:00:00+02:00",
+    "isbn": "2121212122",
+    "borrower": null,
+    "takenDate": null,
+    "returnDate": null
+  },
+  {
+    "id": 2,
+    "name": "Moby Dick",
+    "author": "Herman Melville",
+    "category": "Action/Adventure",
+    "language": "English",
+    "publicationDate": "1851-10-18T01:00:00+03:00",
+    "isbn": "1414141414111",
+    "borrower": null,
+    "takenDate": null,
+    "returnDate": null
+  },
+  {
+    "id": 3,
+    "name": "War and Peace",
+    "author": "Leo Tolstoy",
+    "category": "History",
+    "language": "Russian",
+    "publicationDate": "1869-01-01T00:00:00+02:00",
+    "isbn": "4545454545555",
+    "borrower": "John Smith",
+    "takenDate": "2021-12-29T00:00:00+02:00",
+    "returnDate": "2021-12-30T00:00:00"
+  },
+  {
+    "id": 4,
+    "name": "The Brothers Karamazov",
+    "author": "Fyodor Dostoyevsky",
+    "category": "Novel",
+    "language": "German",
+    "publicationDate": "1879-01-01T00:00:00",
+    "isbn": "1111111111",
+    "borrower": null,
+    "takenDate": null,
+    "returnDate": null
+  },
+  {
+    "id": 5,
+    "name": "Crime and Punishment",
+    "author": "Fyodor Dostoyevsky",
+    "category": "Novel",
+    "language": "Lithuanian",
+    "publicationDate": "1866-01-01T00:00:00",
+    "isbn": "1111111111",
+    "borrower": "John Smith",
+    "takenDate": "2021-12-29T00:00:00+02:00",
+    "returnDate": "2021-12-30T00:00:00"
+  },
+  {
+    "id": 6,
+    "name": "1984",
+    "author": "George Orwell",
+    "category": "Science-Fiction",
+    "language": "English",
+    "publicationDate": "1949-06-08T01:00:00+03:00",
+    "isbn": "2121212122",
+    "borrower": null,
+    "takenDate": null,
+    "returnDate": null
+  },
+  {
+    "id": 7,
+    "name": "To Kill a Mockingbird",
+    "author": "Harper Lee",
+    "category": "Novel",
+    "language": "Lithuanian",
+    "publicationDate": "1960-07-11T01:00:00+03:00",
+    "isbn": "1414141414111",
+    "borrower": "John Smith",
+    "takenDate": "2021-12-29T00:00:00+02:00",
+    "returnDate": "2021-12-30T00:00:00"
+  },
+  {
+    "id": 8,
+    "name": "Gulliver's Travels",
+    "author": "Jonathan Swift",
+    "category": "Action/Adventure",
+    "language": "English",
+    "publicationDate": "1726-01-01T00:00:00+02:00",
+    "isbn": "4545454545555",
+    "borrower": "Bob John",
+    "takenDate": "2021-09-09T00:00:00+02:00",
+    "returnDate": "2021-10-10T00:00:00"
+  },
+  {
+    "id": 9,
+    "name": "Dracula",
+    "author": "Bram Stoker",
+    "category": "Horror",
+    "language": "Lithuanian",
+    "publicationDate": "1897-05-26T00:00:00",
+    "isbn": "1111111111",
+    "borrower": null,
+    "takenDate": null,
+    "returnDate": null
+  },
+  {
+    "id": 10,
+    "name": "Brave New World",
+    "author": "Aldous Huxley",
+    "category": "Science-fiction",
+    "language": "English",
+    "publicationDate": "1932-01-01T00:00:00",
+    "isbn": "1111111111",
+    "borrower": null,
+    "takenDate": null,
+    "returnDate": null
+  }
+]
