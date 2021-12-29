@@ -7,7 +7,7 @@ namespace VismaBookLibrary
         public static string fileName = "books.json";
         static void Main(string[] args)
         {
-            Interpreter interpreter = new Interpreter(new Commands(new BookController(fileName)));
+            Interpreter interpreter = new Interpreter(new BookController(new BookRepository(fileName)));
             Console.WriteLine("Welcome to Visma book library");
             Console.WriteLine("Available commands:");
             Console.WriteLine("get - gets all books. filter params: -n name, -a author, -c category, -l language, -i isbn, -t isTaken (true/false)");

@@ -1,155 +1,458 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace VismaBookLibrary
 {
     public class BookController
     {
-        private string dbFile;
-        private List<Book> AllBooks = new List<Book>();
-        private int currentId = 1;
-
-        public BookController(List<Book> books) {
-            AllBooks = books;
-            if (AllBooks.Count > 0)
-            {
-                currentId = AllBooks.OrderByDescending(x => x.id).First().id + 1;
-            }
-        }
-        public BookController(string fileName)
+        public BookRepository bookRepo { get; set; }
+        public BookController(BookRepository bc)
         {
-            dbFile = "../../../" + fileName;
-
-            AllBooks = JsonConvert.DeserializeObject<List<Book>>(File.ReadAllText(dbFile));
-
-            if (AllBooks.Count > 0)
-            {
-                currentId = AllBooks.OrderByDescending(x => x.id).First().id + 1;
-            }
+            bookRepo = bc;
         }
 
-        public List<Book> getBooks(string name, string author, string category, string language, string isbn, string taken)
+        public bool Get(string[] parts)
         {
-            if (AllBooks.Count == 0)
+            string filterName = "";
+            string filterAuthor = "";
+            string filterCategory = "";
+            string filterLanguage = "";
+            string filterIsbn = "";
+            string filterTaken = "";
+            if(parts.Length % 2 != 0)
             {
-                AllBooks = JsonConvert.DeserializeObject<List<Book>>(File.ReadAllText(dbFile));
-            }
-
-            if(author != "" || category != "" || language != "" || isbn != "" || name != "" || taken != "")
-            {
-                var filteredBooks = AllBooks.AsEnumerable();
-                if (author != "")
-                    filteredBooks = filteredBooks.Where(x => x.author.ToLower().StartsWith(author));
-                if (category != "")
-                    filteredBooks = filteredBooks.Where(x => x.category.ToLower().StartsWith(category));
-                if (language != "")
-                    filteredBooks = filteredBooks.Where(x => x.language.ToLower().StartsWith(language));
-                if (isbn != "")
-                    filteredBooks = filteredBooks.Where(x => x.isbn.ToLower().StartsWith(isbn));
-                if (name != "")
-                    filteredBooks = filteredBooks.Where(x => x.name.ToLower().StartsWith(name));
-                if (taken != "")
-                    filteredBooks = filteredBooks.Where(x => taken == "available" ? (x.borrower == null) : (x.borrower != null));
-                return filteredBooks.ToList();
-            }
-            return AllBooks;
-        }
-
-        public Book getBook(int id)
-        {
-            return AllBooks.Where(x => x.id == id).FirstOrDefault();
-        }
-
-        public virtual bool addBook(Book book)
-        {
-            book.id = currentId;
-            currentId++;
-
-            AllBooks.Add(book);
-            if (!saveToFile())
-            {
-                Console.WriteLine("There has been an error while trying to save changes in json file");
+                Console.WriteLine("Error: incorrect parameter count");
                 return false;
             }
-            Console.WriteLine("Book added sucessfully!");
-            return true;
-        }
-
-        public virtual bool deleteBook(int id)
-        {
-            Book book = AllBooks.Where(x => x.id == id).FirstOrDefault();
-            if (book == null)
+            parts = parts.Select(x => x.ToLower()).ToArray();
+            for (int i = 0; i < parts.Length; i=i+2)
             {
-                Console.WriteLine("Book with id: " + id + " cannot be found");
-                return false;
+                switch (parts[i])
+                {
+                    case "-n":
+                    case "-name":
+                        filterName = parts[i+1];
+                        break;
+                    case "-a":
+                    case "-auth":
+                    case "-author":
+                        filterAuthor = parts[i+1];
+                        break;
+                    case "-c":
+                    case "-cat":
+                    case "-category":
+                        filterCategory = parts[i+1];
+                        break;
+                    case "-l":
+                    case "-lang":
+                    case "-language":
+                        filterLanguage = parts[i+1];
+                        break;
+                    case "-i":
+                    case "-isbn":
+                        filterIsbn = parts[i+1];
+                        break;
+                    case "-t":
+                    case "-taken":
+                        switch (parts[i+1])
+                        {
+                            case "t":
+                            case "true":
+                            case "taken":
+                                filterTaken = "taken";
+                                break;
+                            case "f":
+                            case "false":
+                            case "a":
+                            case "available":
+                                filterTaken = "available";
+                                break;
+                            default:
+                                Console.WriteLine("Error: unrecognized option for -taken: " + parts[i + 1]);
+                                return false;
+                        }
+                        break;
+                    default:
+                        Console.WriteLine("Error: invalid parameter: " + parts[i]);
+                        return false;
+                }
             }
-            AllBooks.Remove(book);
-            if (!saveToFile())
-            {
-                Console.WriteLine("There has been an error while trying to save changes in json file");
-                return false;
-            }
-            Console.WriteLine("Book with id: " + id + " deleted sucessfully!");
-            return true;
-
-        }
-
-        public virtual bool takeBook(Book book, string borrowerName, DateTime returnDate)
-        {
-            book.borrower = borrowerName;
-            book.takenDate = DateTime.Today;
-            book.returnDate = returnDate;
-            if (!saveToFile())
-            {
-                Console.WriteLine("There has been an error while trying to save changes in json file");
-                return false;
-            }
-            Console.WriteLine("Book with id: " + book.id + " has been taken sucessfully!");
-            return true;
-        }
-
-        public virtual bool returnBook(Book book)
-        {
-            DateTime returnDate = (DateTime)book.returnDate;
-            string name = book.borrower;
-            book.borrower = null;
-            book.takenDate = null;
-            book.returnDate = null;
-            if (!saveToFile())
-            {
-                Console.WriteLine("There has been an error while trying to save changes in json file");
-                return false;
-            }
-            if (returnDate < DateTime.Today)
-                Console.WriteLine("Book with id: " + book.id + " was returned late. Santa is adding " + name + " to his naughty list.");
+            List<Book> books = bookRepo.getBooks(filterName, filterAuthor, filterCategory, filterLanguage, filterIsbn, filterTaken);
+            if (books.Count == 0)
+                Console.WriteLine("List is empty");
             else
-                Console.WriteLine("Book with id: " + book.id + " has been returned sucessfully!");
+            {
+                Console.WriteLine(new String('-', 200));
+                Console.WriteLine("| {0, 5} | {1,25} | {2,25} | {3,17} | {4,15} | {5,16} | {6,15} | {7,25} | {8,15} | {9,15} |",
+                    "Id", "Name", "Author", "Category", "Language", "Publication Date", "ISBN", "Borrower", "Takeout Date", "Return Date");
+                Console.WriteLine(new String('-', 200));
+                foreach (var book in books)
+                {
+                    Console.WriteLine(book.ToString());
+                }
+            }
             return true;
         }
 
-        public int getBorrowedBooksCount(string borrowerName)
+        public bool Add(string[] parts)
         {
-            return AllBooks.Where(x => x.borrower?.ToLower() == borrowerName).Count();
+            if(parts.Length % 2 != 0)
+            {
+                Console.WriteLine("Error: incorrect parameter count");
+                return false;
+            }
+
+            string nameInput = "";
+            string authorinput = "";
+            string categoryInput = "";
+            string languageInput = "";
+            DateTime publicationDate = DateTime.MinValue;
+            string isbnInput = "";
+
+            for (int i = 0; i < parts.Length; i = i + 2)
+            {
+                switch (parts[i])
+                {
+                    case "-n":
+                    case "-name":
+                        nameInput = parts[i + 1];
+                        if (nameInput == "")
+                        {
+                            Console.WriteLine("Error: Name cannot be empty");
+                            return false;
+                        }
+                        break;
+                    case "-a":
+                    case "-auth":
+                    case "-author":
+                        authorinput = parts[i + 1];
+                        if (authorinput == "")
+                        {
+                            Console.WriteLine("Error: Author cannot be empty");
+                            return false;
+                        }
+                        break;
+                    case "-c":
+                    case "-cat":
+                    case "-category":
+                        categoryInput = parts[i + 1];
+                        switch (categoryInput.ToLower())
+                        {
+                            case "action":
+                            case "adventure":
+                                categoryInput = "Action/Adventure";
+                                break;
+                            case "fantasy":
+                                categoryInput = "Fantasy";
+                                break;
+                            case "history":
+                            case "historical":
+                                categoryInput = "History";
+                                break;
+                            case "detective":
+                            case "mystery":
+                            case "crime":
+                                categoryInput = "Mystery/Crime";
+                                break;
+                            case "horror":
+                                categoryInput = "Horror";
+                                break;
+                            case "romance":
+                            case "love":
+                                categoryInput = "Romance";
+                                break;
+                            case "science fiction":
+                            case "sci-fi":
+                                categoryInput = "Science Fiction";
+                                break;
+                            case "biography":
+                            case "autobiography":
+                            case "biographical":
+                            case "autobiographical":
+                                categoryInput = "Biography";
+                                break;
+                            case "novel":
+                                categoryInput = "Novel";
+                                break;
+                            default:
+                                Console.WriteLine("Error: Category not found");
+                                return false;
+                        }
+                        break;
+                    case "-l":
+                    case "-lang":
+                    case "-language":
+                        languageInput = parts[i + 1];
+                        switch (languageInput.ToLower())
+                        {
+                            case "lt":
+                            case "lit":
+                            case "lithuanian":
+                                languageInput = "Lithuanian";
+                                break;
+                            case "en":
+                            case "eng":
+                            case "english":
+                                languageInput = "English";
+                                break;
+                            case "rus":
+                            case "russian":
+                                languageInput = "Russian";
+                                break;
+                            case "de":
+                            case "deu":
+                            case "german":
+                                languageInput = "German";
+                                break;
+                            case "fr":
+                            case "french":
+                                languageInput = "French";
+                                break;
+                            default:
+                                Console.WriteLine("Error: Language not found");
+                                return false;
+                        }
+                        break;
+                    case "-p":
+                    case "-pub":
+                    case "-d":
+                    case "-date":
+                    case "-pubdate":
+                    case "-publicationdate":
+                        string dateInput = parts[i + 1];
+                        if (dateInput == "")
+                        {
+                            Console.WriteLine("Error: Date cannot be empty");
+                            return false;
+                        }
+                        try
+                        {
+                            publicationDate = DateTime.Parse(dateInput);
+                        }
+                        catch
+                        {
+                            Console.WriteLine("Error: Incorrect date format (yyyy-MM-dd)");
+                            return false;
+                        }
+                        break;
+                    case "-i":
+                    case "-isbn":
+                        isbnInput = parts[i + 1];
+                        if (isbnInput == "")
+                        {
+                            Console.WriteLine("Error: ISBN cannot be empty");
+                            return false;
+                        }
+                        else if (!Regex.IsMatch(isbnInput, @"^(?=(?:\D*\d){10}(?:(?:\D*\d){3})?$)[\d-]+$"))
+                        {
+                            Console.WriteLine("Error: incorrect ISBN format");
+                            return false;
+                        }
+
+                        break;
+
+                    default:
+                        Console.WriteLine("Error: invalid parameter: " + parts[i]);
+                        return false;
+                }
+            }
+            bool paramsMissing = false;
+            if(nameInput == "")
+            {
+                Console.WriteLine("Error: Name parameter missing");
+                paramsMissing = true;
+            }
+            if (authorinput == "")
+            {
+                Console.WriteLine("Error: Author parameter missing");
+                paramsMissing = true;
+            }
+            if (categoryInput == "")
+            {
+                Console.WriteLine("Error: Category parameter missing");
+                paramsMissing = true;
+            }
+            if (languageInput == "")
+            {
+                Console.WriteLine("Error: Language parameter missing");
+                paramsMissing = true;
+            }
+            if (publicationDate == DateTime.MinValue)
+            {
+                Console.WriteLine("Error: Publication date parameter missing");
+                paramsMissing = true;
+            }
+            if (isbnInput == "")
+            {
+                Console.WriteLine("Error: ISBN parameter missing");
+                paramsMissing = true;
+            }
+            if (paramsMissing)
+                return false;
+            return bookRepo.addBook(new Book(nameInput, authorinput, categoryInput, languageInput, publicationDate, isbnInput));
         }
 
-        public virtual bool saveToFile()
+        public bool Remove(string[] parts)
         {
+            if (parts.Length != 1)
+            {
+                Console.WriteLine("Error: Incorrect parameter count. This command accepts only one id");
+                return false;
+            }
+
+            int id;
             try
             {
-                string json = JsonConvert.SerializeObject(AllBooks, Formatting.Indented);
-                File.WriteAllText(dbFile, json);
-                return true;
+                id = int.Parse(parts[0]);
             }
             catch
             {
+                Console.WriteLine("Error: Id should be a number");
                 return false;
             }
+            return bookRepo.deleteBook(id);
+        }
+
+        public bool Take(string[] parts)
+        {
+            int id;
+            try
+            {
+                id = int.Parse(parts[0]);
+            }
+            catch
+            {
+                Console.WriteLine("Error: Id should be a number");
+                return false;
+            }
+            Book selectedBook = bookRepo.getBook(id);
+            if (selectedBook == null)
+            {
+                Console.WriteLine("Error: Book with id: " + id + " could not be found");
+                return false;
+            }
+            else if (selectedBook.borrower != null)
+            {
+                Console.WriteLine("Error: Book with id: " + id + " has already been taken");
+                return false;
+            }
+
+            if (parts.Length % 2 == 0)
+            {
+                Console.WriteLine("Error: incorrect parameter count");
+                return false;
+            }
+
+            string borrowerNameInput = "";
+            DateTime returnDate = DateTime.MinValue;
+
+
+            for (int i = 1; i < parts.Length; i = i + 2)
+            {
+                switch (parts[i])
+                {
+                    case "-n":
+                    case "-name":
+                    case "-b":
+                    case "-borrower":
+                    case "-borrowername":
+                        borrowerNameInput = parts[i + 1];
+                        if (borrowerNameInput.ToLower() == "")
+                        {
+                            Console.WriteLine("Error: Name cannot be empty");
+                            return false;
+                        }    
+                        else if (bookRepo.getBorrowedBooksCount(borrowerNameInput.ToLower()) >= 3)
+                        {
+                            Console.WriteLine("Error: Declared person has already borrowed 3 or more books");
+                            return false;
+                        }
+                        break;
+                    case "-d":
+                    case "-date":
+                    case "-rd":
+                    case "-returndate":
+                        string returnDateInput = parts[i + 1];
+                        if (returnDateInput.ToLower() == "")
+                        {
+                            Console.WriteLine("Error: Return date cannot be empty");
+                            return false;
+                        }
+                        try
+                        {
+                            returnDate = DateTime.Parse(returnDateInput);
+                        }
+                        catch
+                        {
+                            Console.WriteLine("Error: Incorrect date format (yyyy-MM-dd)");
+                            return false;
+                        }
+                        if (returnDate < DateTime.Today)
+                        {
+                            Console.WriteLine("Error: Return date cannot be earlier than today's date");
+                            return false;
+                        }
+                        else if (returnDate > DateTime.Today.AddMonths(2))
+                        {
+                            Console.WriteLine("Error: Book cannot be borrowed for longer than 2 months");
+                            return false;
+                        }
+                        break;
+                }
+            }
+            bool paramsMissing = false;
+            if (borrowerNameInput == "")
+            {
+                Console.WriteLine("Error: Borrower name parameter missing");
+                paramsMissing = true;
+            }
+            if (returnDate == DateTime.MinValue)
+            {
+                Console.WriteLine("Error: Return date parameter missing");
+                paramsMissing = true;
+            }
+            if (paramsMissing)
+                return false;
+            return bookRepo.takeBook(selectedBook, borrowerNameInput, returnDate);
+        }
+
+        public bool Return(string[] parts)
+        {
+
+            if (parts.Length != 1)
+            {
+                Console.WriteLine("Error: Incorrect parameter count. This command accepts only one id");
+                return false;
+            }
+
+            int id;
+            try
+            {
+                id = int.Parse(parts[0]);
+            }
+            catch
+            {
+                Console.WriteLine("Error: Id should be a number");
+                return false;
+            }
+
+            Book selectedBook = bookRepo.getBook(id);
+            if (selectedBook == null)
+            {
+                Console.WriteLine("Error: Book with id: " + id + " could not be found");
+                return false;
+            }
+            else if (selectedBook.borrower == null)
+            {
+                Console.WriteLine("Error: Book with id: " + id + " has not been taken by anybody");
+                return false;
+            }
+
+            return bookRepo.returnBook(selectedBook);
         }
     }
 }

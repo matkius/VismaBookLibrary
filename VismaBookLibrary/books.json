@@ -33,7 +33,7 @@
     "isbn": "4545454545555",
     "borrower": "John Smith",
     "takenDate": "2021-12-29T00:00:00+02:00",
-    "returnDate": "2021-12-30T00:00:00"
+    "returnDate": "2022-01-30T00:00:00"
   },
   {
     "id": 4,
@@ -57,7 +57,7 @@
     "isbn": "1111111111",
     "borrower": "John Smith",
     "takenDate": "2021-12-29T00:00:00+02:00",
-    "returnDate": "2021-12-30T00:00:00"
+    "returnDate": "2022-01-30T00:00:00"
   },
   {
     "id": 6,
@@ -81,7 +81,7 @@
     "isbn": "1414141414111",
     "borrower": "John Smith",
     "takenDate": "2021-12-29T00:00:00+02:00",
-    "returnDate": "2021-12-30T00:00:00"
+    "returnDate": "2022-01-30T00:00:00"
   },
   {
     "id": 8,
@@ -92,7 +92,7 @@
     "publicationDate": "1726-01-01T00:00:00+02:00",
     "isbn": "4545454545555",
     "borrower": "Bob John",
-    "takenDate": "2021-09-09T00:00:00+02:00",
+    "takenDate": "2021-09-09T01:00:00+03:00",
     "returnDate": "2021-10-10T00:00:00"
   },
   {

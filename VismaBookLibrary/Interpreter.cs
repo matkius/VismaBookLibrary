@@ -9,10 +9,10 @@ namespace VismaBookLibrary
 {
     public class Interpreter
     {
-        public Commands cmd { get; set; }
-        public Interpreter(Commands c)
+        public BookController controller { get; set; }
+        public Interpreter(BookController c)
         {
-            cmd = c;
+            controller = c;
         }
 
         public void interpret(string input)
@@ -29,20 +29,20 @@ namespace VismaBookLibrary
                 switch (command)
                 {
                     case "get":
-                        cmd.Get(parts);
+                        controller.Get(parts);
                         break;
                     case "add":
-                        cmd.Add(parts);
+                        controller.Add(parts);
                         break;
                     case "delete":
                     case "remove":
-                        cmd.Remove(parts);
+                        controller.Remove(parts);
                         break;
                     case "take":
-                        cmd.Take(parts);
+                        controller.Take(parts);
                         break;
                     case "return":
-                        cmd.Return(parts);
+                        controller.Return(parts);
                         break;
                     default:
                         Console.WriteLine("Error: Invalid command");
